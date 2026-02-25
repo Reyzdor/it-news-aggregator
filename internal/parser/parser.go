@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -8,8 +9,8 @@ import (
 )
 
 type Article struct {
-	Title       string
-	Description string
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 func Pars() ([]Article, error) {
@@ -37,6 +38,13 @@ func Pars() ([]Article, error) {
 		})
 		fmt.Println(title, description)
 	})
+
+	jsonData, err := json.Marshal(articles)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(string(jsonData))
 
 	return articles, nil
 }

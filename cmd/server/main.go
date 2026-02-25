@@ -1,20 +1,30 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"trendfeed/internal/parser"
 )
 
 func main() {
-	parser.Pars()
+	articles, err := parser.Pars()
+	if err != nil {
+		fmt.Println("Error", err)
+		return
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Trend Feed!")
+		w.Header().Set("Content-Type", "application/json")
+		jsonData, err := json.MarshalIndent(articles, "", " ")
+		if err != nil {
+			http.Error(w, "Failed", http.StatusInternalServerError)
+			return
+		}
+
+		w.Write(jsonData)
 	})
 
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		fmt.Println("Error")
-	}
+	http.ListenAndServe(":8080", nil)
+
 }
