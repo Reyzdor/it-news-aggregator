@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"trendfeed/internal/parser"
 )
 
 func main() {
+	parser.Pars()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Trend Feed!")
 	})
