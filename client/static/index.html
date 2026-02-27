@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TrendFeed</title>
+</head>
+<body>
+    <div id="news"></div>
+
+    <script>
+        fetch("/api/news")
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById("news");
+
+                data.forEach(article => {
+                    const block = document.createElement("div");
+
+                    const title = document.createElement("h2");
+                    title.textContent = article.title;
+
+                    const desc = document.createElement("p");
+                    desc.textContent = article.description;
+
+                    const image = document.createElement("img");
+                    image.src = article.image_url;
+
+                    block.appendChild(title);
+                    block.appendChild(desc);
+                    block.appendChild(image);
+
+                    container.appendChild(block);
+                });
+            });
+    </script>
+</body>
+</html>

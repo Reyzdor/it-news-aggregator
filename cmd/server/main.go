@@ -2,28 +2,56 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
+	"sync"
+	"time"
 	"trendfeed/internal/parser"
 )
 
-func main() {
-	articles, err := parser.Pars()
+var (
+	articles []parser.Article
+	mu       sync.RWMutex
+)
+
+func updateNews() {
+	data, err := parser.Pars()
 	if err != nil {
-		fmt.Println("Error", err)
+		log.Println("Parse error", err)
 		return
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		jsonData, err := json.MarshalIndent(articles, "", " ")
-		if err != nil {
-			http.Error(w, "Failed", http.StatusInternalServerError)
-			return
-		}
+	mu.Lock()
+	articles = data
+	mu.Unlock()
+}
 
-		w.Write(jsonData)
+func startUpdater() {
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			updateNews()
+		}
+	}()
+}
+
+func main() {
+	updateNews()
+
+	startUpdater()
+
+	http.HandleFunc("/api/news", func(w http.ResponseWriter, r *http.Request) {
+		mu.RLock()
+		defer mu.RUnlock()
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(articles)
 	})
+
+	fs := http.FileServer(http.Dir("./client/static"))
+	http.Handle("/", fs)
 
 	http.ListenAndServe(":8080", nil)
 

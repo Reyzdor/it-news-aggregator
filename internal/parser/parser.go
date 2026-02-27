@@ -11,6 +11,7 @@ import (
 type Article struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	ImageUrl    string `json:"image_url"`
 }
 
 func Pars() ([]Article, error) {
@@ -32,11 +33,19 @@ func Pars() ([]Article, error) {
 		title := s.Find("a.tm-title__link").Text()
 		description := s.Find("div.article-formatted-body").Text()
 
+		img := s.Find("img.lead-image")
+		image, exists := img.Attr("src")
+
+		if !exists {
+			image = ""
+		}
+
 		articles = append(articles, Article{
 			Title:       title,
 			Description: description,
+			ImageUrl:    image,
 		})
-		fmt.Println(title, description)
+		fmt.Println(title, description, image)
 	})
 
 	jsonData, err := json.Marshal(articles)
